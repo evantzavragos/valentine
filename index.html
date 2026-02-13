@@ -3,93 +3,67 @@
 <head>
   <meta charset="utf-8" />
   <title>Be My Valentine?</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      text-align: center;
       margin: 0;
-      padding-top: 60px;
+      padding-top: 40px;
+      text-align: center;
       background: #ffe6f0;
+      font-family: Arial, sans-serif;
       overflow: hidden;
-      height: 100vh;
     }
 
-    h1, h2 { margin: 10px; padding: 0 10px; }
-    h1 { font-weight: 800; }
-    h2 { font-weight: 700; }
+    h1 { margin-bottom: 0; font-size: 32px; }
+    h2 { margin-top: 5px; font-size: 22px; }
 
-    /* Photo card */
     .photo-card {
-      position: relative;
-      display: inline-block;
       background: #fff;
-      border-radius: 16px;
       padding: 12px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-      margin: 12px auto 4px;
-      max-width: min(92vw, 520px);
-      z-index: 3; /* above hearts */
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      margin: 20px auto;
+      max-width: 350px;
     }
+
     .photo-card img {
-      display: block;
       width: 100%;
-      height: auto;
-      max-height: 70vh;
-      object-fit: cover;
       border-radius: 12px;
-      background: #f3f3f3;
     }
-    .fallback {
-      padding: 10px 12px;
-      color: #b00020;
-      font-size: 14px;
-      background: #fff2f4;
-      border-radius: 10px;
-      border: 1px solid #ffd6de;
-    }
+
     .photo-caption {
+      margin-top: 8px;
       font-size: 14px;
       color: #7a3a50;
-      margin-top: 8px;
     }
 
-    button {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 22px;
-      line-height: 1.1;
+    #yesBtn, #noBtn {
       padding: 12px 24px;
-      border: none;
+      font-size: 22px;
       border-radius: 10px;
+      border: none;
       cursor: pointer;
-      touch-action: manipulation;
-      -webkit-appearance: none;
-      user-select: none;
+      margin: 10px;
     }
-    button .label { line-height: 1; }
-    button .emoji { font-size: 1em; line-height: 1; }
 
     #yesBtn {
       background: #e91e63;
       color: white;
-      transition: transform 0.15s ease;
-      margin-top: 14px;
-      box-shadow: 0 4px 12px rgba(233,30,99,0.35);
     }
 
-    /* Start centered; we will remove transform on first move */
     #noBtn {
       background: #ccc;
       color: #333;
-      position: fixed;
-      top: 60vh;
-      left: 50vw;
-      transform: translate(-50%, -50%);
-      z-index: 2;
+      position: absolute;
+      top: 70%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #response {
+      margin-top: 20px;
+      font-size: 22px;
     }
 
     /* Floating hearts */
@@ -97,25 +71,18 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      overflow: hidden;
-      z-index: 1;
+      z-index: -1;
     }
     .heart {
       position: absolute;
       color: #ff5c8a;
       font-size: 24px;
       animation: floatUp 4s linear infinite;
-      will-change: transform, opacity;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      opacity: 0;
     }
     @keyframes floatUp {
-      0%   { transform: translateY(100vh) scale(1); opacity: 1; }
-      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
-    }
-
-    #response {
-      margin-top: 18px;
-      font-size: 20px;
+      from { transform: translateY(100vh); opacity: 1; }
+      to   { transform: translateY(-10vh) scale(1.4); opacity: 0; }
     }
   </style>
 </head>
@@ -126,105 +93,44 @@
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <!-- Photo of their cats -->
-  <figure class="photo-card" aria-label="A cute photo message from the cats">
-    <img
-      src="./assets/image.png?v=1"
-      alt="Two cats cuddled in a bed by a bright window"
-      onerror="(function(img){
-        const note = document.createElement('div');
-        note.className='fallback';
-        note.textContent='Couldn’t load the photo. Check the filename/path.';
-        img.replaceWith(note);
-      })(this)"
-    />
-    <figcaption class="photo-caption">The executive cuddle committee votes “Yes.” 🐾</figcaption>
-  </figure>
-
-  <div>
-    <button id="yesBtn" type="button">
-      <span class="label">Yes</span>
-      <span class="emoji" aria-hidden="true">💘</span>
-    </button>
-    <button id="noBtn" type="button">
-      <span class="label">No</span>
-      <span class="emoji" aria-hidden="true">😢</span>
-    </button>
+  <div class="photo-card">
+    <img src="cats.png" alt="Their cats cuddling">
+    <div class="photo-caption">The executive cuddle committee votes yes 🐾</div>
   </div>
 
-  <p id="response" role="status" aria-live="polite"></p>
+  <button id="yesBtn">Yes 💘</button>
+  <button id="noBtn">No 😢</button>
+
+  <div id="response"></div>
 
   <script>
     // Floating hearts
     const hearts = document.getElementById("hearts");
     setInterval(() => {
-      const heart = document.createElement("div");
-      heart.className = "heart";
-      heart.textContent = "❤️";
-      heart.style.left = Math.random() * 100 + "vw";
-      heart.style.animationDuration = (3 + Math.random() * 2) + "s";
-      hearts.appendChild(heart);
-      setTimeout(() => heart.remove(), 5000);
+      const h = document.createElement("div");
+      h.className = "heart";
+      h.textContent = "❤️";
+      h.style.left = Math.random() * 100 + "vw";
+      h.style.animationDuration = (3 + Math.random() * 2) + "s";
+      hearts.appendChild(h);
+      setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // Yes button grows
-    const yesBtn = document.getElementById("yesBtn");
-    let yesSize = 22;
-    function growYes() {
-      yesSize += 4;
-      yesBtn.style.fontSize = yesSize + "px";
-      yesBtn.style.transform = "scale(1.03)";
-      setTimeout(() => (yesBtn.style.transform = "none"), 120);
-    }
-
-    // Move "No" button with iOS-safe logic
-    const noBtn = document.getElementById("noBtn");
-    let initialized = false;
-
-    function moveButton(e) {
-      if (e && typeof e.preventDefault === "function") e.preventDefault();
-
-      // Remove initial centering transform so left/top are literal pixels
-      if (!initialized) {
-        noBtn.style.transform = "none";
-        initialized = true;
-      }
-
-      // Compute safe bounds based on actual button size
-      const rect = noBtn.getBoundingClientRect();
-      const maxX = Math.max(0, window.innerWidth  - rect.width  - 4);
-      const maxY = Math.max(0, window.innerHeight - rect.height - 4);
-
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
-
-      noBtn.style.left = x + "px";
-      noBtn.style.top  = y + "px";
-
-      growYes();
-    }
-
-    // Attach events (Pointer Events first; fall back to touch/mouse)
-    if (window.PointerEvent) {
-      noBtn.addEventListener("pointerenter", moveButton, { passive: false });
-      noBtn.addEventListener("pointerdown",  moveButton, { passive: false });
-      noBtn.addEventListener("pointermove",  moveButton, { passive: false });
-    } else {
-      noBtn.addEventListener("touchstart", moveButton, { passive: false });
-      noBtn.addEventListener("touchmove",  moveButton, { passive: false });
-      noBtn.addEventListener("mouseover",  moveButton);
-      noBtn.addEventListener("mousemove",  moveButton);
-    }
-
-    // As a final fallback, also move on click/tap
-    noBtn.addEventListener("click", moveButton);
-
-    // Yes action (personalized)
-    function sayYes() {
+    // Yes button
+    document.getElementById("yesBtn").onclick = () => {
       document.getElementById("response").textContent =
-        "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+        "Yay! Can't wait, Scarlett (Stinky) ❤️";
+    };
+
+    // No button runs away
+    const noBtn = document.getElementById("noBtn");
+    noBtn.addEventListener("mouseover", moveNo);
+    noBtn.addEventListener("click", moveNo);
+
+    function moveNo() {
+      noBtn.style.top = Math.random() * 80 + "%";
+      noBtn.style.left = Math.random() * 80 + "%";
     }
-    yesBtn.addEventListener("click", sayYes);
   </script>
 </body>
 </html>
