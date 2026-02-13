@@ -15,6 +15,7 @@
     }
     h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
     h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
+
     .photo-card {
       display: inline-block;
       background: #fff;
@@ -95,12 +96,16 @@
   <h2>Will you be my Valentine?</h2>
 
   <figure class="photo-card" aria-label="A cute photo message from the cats">
-    <!-- Raw GitHub URL: update only if your file name/path is different -->
-    https://raw.githubusercontent.com/evantzavragos/valentine/main/image.png
+    <!-- ✅ This is the actual image element (previously missing) -->
+    <img
+      id="cats"
+      src="https://raw.githubusercontent.com/evantzavragos/valentine/main/image.png"
+      alt="Their cats cuddling"
+    />
     <figcaption class="photo-caption">The executive cuddle committee votes yes 🐾</figcaption>
     <div id="imgError" class="img-error">
-      Couldn’t load the photo. Make sure the file exists at the URL above (case-sensitive),
-      or rename your file to <code>image.png</code> in the repo root.
+      Couldn’t load the photo. Make sure the file exists at the URL above (case‑sensitive),
+      or rename the repo file to <code>image.png</code>.
     </div>
   </figure>
 
@@ -124,7 +129,7 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // Yes button
+    // Yes button response
     document.getElementById("yesBtn").onclick = () => {
       document.getElementById("response").textContent =
         "Yay! Can’t wait, Scarlett (Stinky) ❤️";
@@ -139,9 +144,9 @@
     noBtn.addEventListener("mouseover", moveNo);
     noBtn.addEventListener("click", moveNo);
 
-    // Show warning text if image fails to load
-    const img = document.querySelector(".photo-card img");
-    img.addEventListener("error", () => {
+    // Show helper if the image can't load
+    const cats = document.getElementById("cats");
+    cats.addEventListener("error", () => {
       document.getElementById("imgError").style.display = "block";
     });
   </script>
