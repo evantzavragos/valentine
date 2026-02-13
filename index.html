@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Be My Valentine?</title>
@@ -8,30 +8,33 @@
   <style>
     body {
       margin: 0;
-      padding-top: 40px;
+      padding-top: 48px;
       text-align: center;
       background: #ffe6f0;
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       overflow: hidden;
     }
-
-    h1 { margin-bottom: 0; font-size: 32px; }
-    h2 { margin-top: 5px; font-size: 22px; }
+    h1 { margin: 0 0 4px; font-size: 32px; font-weight: 800; }
+    h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
 
     .photo-card {
+      display: inline-block;
       background: #fff;
       padding: 12px;
       border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      margin: 20px auto;
-      max-width: 350px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+      margin: 12px auto 4px;
+      max-width: min(92vw, 520px);
     }
-
     .photo-card img {
+      display: block;
       width: 100%;
+      height: auto;
+      max-height: 70vh;
+      object-fit: cover;
       border-radius: 12px;
+      background: #f3f3f3;
     }
-
     .photo-caption {
       margin-top: 8px;
       font-size: 14px;
@@ -44,67 +47,44 @@
       border-radius: 10px;
       border: none;
       cursor: pointer;
-      margin: 10px;
+      margin: 14px 8px 0;
     }
+    #yesBtn { background: #e91e63; color: #fff; box-shadow: 0 4px 12px rgba(233,30,99,0.35); }
+    #noBtn  { background: #ccc; color: #333; position: fixed; top: 65vh; left: 50vw; transform: translate(-50%,-50%); }
 
-    #yesBtn {
-      background: #e91e63;
-      color: white;
-    }
-
-    #noBtn {
-      background: #ccc;
-      color: #333;
-      position: absolute;
-      top: 70%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #response {
-      margin-top: 20px;
-      font-size: 22px;
-    }
+    #response { margin-top: 16px; font-size: 20px; }
 
     /* Floating hearts */
-    #hearts {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
-    }
-    .heart {
-      position: absolute;
-      color: #ff5c8a;
-      font-size: 24px;
-      animation: floatUp 4s linear infinite;
-      opacity: 0;
-    }
-    @keyframes floatUp {
-      from { transform: translateY(100vh); opacity: 1; }
-      to   { transform: translateY(-10vh) scale(1.4); opacity: 0; }
-    }
+    #hearts { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+    .heart { position: absolute; color: #ff5c8a; font-size: 24px; animation: floatUp 4s linear infinite; text-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    @keyframes floatUp { 0% { transform: translateY(100vh); opacity: 1; } 100% { transform: translateY(-10vh) scale(1.4); opacity: 0; } }
+
+    /* Tiny red warning bar if the image fails to load */
+    .img-error { margin-top: 6px; color: #b00020; font-size: 13px; }
   </style>
 </head>
-
 <body>
   <div id="hearts"></div>
 
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <div class="photo-card">
-    <img src="cats.png" alt="Their cats cuddling">
-    <div class="photo-caption">The executive cuddle committee votes yes 🐾</div>
-  </div>
+  <figure class="photo-card">
+    <!-- IMPORTANT: image.png must sit next to index.html -->
+    image.png
+    <figcaption class="photo-caption">The executive cuddle committee votes yes 🐾</figcaption>
+    <div id="imgError" class="img-error" style="display:none;">Couldn’t load <code>image.png</code>. Make sure it’s next to <code>index.html</code> and the name matches exactly (case-sensitive).</div>
+  </figure>
 
-  <button id="yesBtn">Yes 💘</button>
-  <button id="noBtn">No 😢</button>
+  <div>
+    <button id="yesBtn">Yes 💘</button>
+    <button id="noBtn">No 😢</button>
+  </div>
 
   <div id="response"></div>
 
   <script>
-    // Floating hearts
+    // Hearts
     const hearts = document.getElementById("hearts");
     setInterval(() => {
       const h = document.createElement("div");
@@ -116,21 +96,24 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // Yes button
+    // Yes button response
     document.getElementById("yesBtn").onclick = () => {
-      document.getElementById("response").textContent =
-        "Yay! Can't wait, Scarlett (Stinky) ❤️";
+      document.getElementById("response").textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
     };
 
-    // No button runs away
+    // No button dodges
     const noBtn = document.getElementById("noBtn");
+    function moveNo() {
+      noBtn.style.left = Math.random() * 80 + 10 + "vw";
+      noBtn.style.top  = Math.random() * 65 + 20 + "vh";
+    }
     noBtn.addEventListener("mouseover", moveNo);
     noBtn.addEventListener("click", moveNo);
 
-    function moveNo() {
-      noBtn.style.top = Math.random() * 80 + "%";
-      noBtn.style.left = Math.random() * 80 + "%";
-    }
+    // If image fails, show text warning
+    const img = document.querySelector("img");
+    img.addEventListener("error", () => document.getElementById("imgError").style.display = "block");
   </script>
 </body>
 </html>
+``
