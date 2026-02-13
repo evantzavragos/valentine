@@ -36,11 +36,11 @@
     .photo-card img {
       display: block;
       width: 100%;
-      height: auto;              /* maintain aspect ratio */
-      max-height: 70vh;          /* avoid exceeding viewport height */
-      object-fit: cover;         /* crop gracefully if needed */
+      height: auto;
+      max-height: 70vh;
+      object-fit: cover;
       border-radius: 12px;
-      background: #f3f3f3;       /* subtle loading bg */
+      background: #f3f3f3;
     }
     .fallback {
       padding: 10px 12px;
@@ -129,11 +129,10 @@
   <!-- Photo of their cats -->
   <figure class="photo-card" aria-label="A cute photo message from the cats">
     <img
-      id="catsPhoto"
-      src="image.png"                <!-- CHANGE THIS if your file/path differs -->
+      src="./assets/image.png?v=1"
       alt="Two cats cuddled in a bed by a bright window"
       onerror="(function(img){
-        var note = document.createElement('div');
+        const note = document.createElement('div');
         note.className='fallback';
         note.textContent='Couldn’t load the photo. Check the filename/path.';
         img.replaceWith(note);
@@ -193,7 +192,7 @@
 
       // Compute safe bounds based on actual button size
       const rect = noBtn.getBoundingClientRect();
-      const maxX = Math.max(0, window.innerWidth  - rect.width  - 4);  // padding
+      const maxX = Math.max(0, window.innerWidth  - rect.width  - 4);
       const maxY = Math.max(0, window.innerHeight - rect.height - 4);
 
       const x = Math.random() * maxX;
