@@ -19,6 +19,30 @@
 
     h1, h2 { margin: 10px; padding: 0 10px; }
 
+    /* Photo card */
+    .photo-card {
+      position: relative;
+      display: inline-block;
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+      margin: 12px auto 4px;
+      max-width: min(92vw, 520px);
+      z-index: 3; /* above hearts */
+    }
+    .photo-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+    }
+    .photo-caption {
+      font-size: 14px;
+      color: #7a3a50;
+      margin-top: 8px;
+    }
+
     button {
       display: inline-flex;
       align-items: center;
@@ -40,7 +64,7 @@
       background: #e91e63;
       color: white;
       transition: transform 0.15s ease;
-      margin-top: 20px;
+      margin-top: 14px;
     }
 
     /* Start centered; we will remove transform on first move */
@@ -75,7 +99,7 @@
     }
 
     #response {
-      margin-top: 30px;
+      margin-top: 18px;
       font-size: 20px;
     }
   </style>
@@ -84,11 +108,25 @@
 <body>
   <div id="hearts"></div>
 
-  <h1>Alexandra... 💕</h1>
+  <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <button id="yesBtn" type="button"><span class="label">Yes</span><span class="emoji" aria-hidden="true">💘</span></button>
-  <button id="noBtn" type="button"><span class="label">No</span><span class="emoji" aria-hidden="true">😢</span></button>
+  <!-- Photo of their cats -->
+  <figure class="photo-card" aria-label="A cute photo message from the cats">
+    <img src="0.jpg" alt="Two cats cuddled in a bed by a bright window" loading="eager">
+    <figcaption class="photo-caption">The executive cuddle committee votes “Yes.” 🐾</figcaption>
+  </figure>
+
+  <div>
+    <button id="yesBtn" type="button">
+      <span class="label">Yes</span>
+      <span class="emoji" aria-hidden="true">💘</span>
+    </button>
+    <button id="noBtn" type="button">
+      <span class="label">No</span>
+      <span class="emoji" aria-hidden="true">😢</span>
+    </button>
+  </div>
 
   <p id="response" role="status" aria-live="polite"></p>
 
@@ -157,9 +195,10 @@
     // As a final fallback, also move on click/tap
     noBtn.addEventListener("click", moveButton);
 
-    // Yes action
+    // Yes action (personalized)
     function sayYes() {
-      document.getElementById("response").textContent = "I Love You ❤️";
+      document.getElementById("response").textContent =
+        "Yay! Can’t wait, Scarlett (Stinky) ❤️";
     }
     yesBtn.addEventListener("click", sayYes);
   </script>
