@@ -3,50 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <title>Be My Valentine?</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      margin: 0;
-      padding-top: 48px;
-      text-align: center;
-      background: #ffe6f0;
-      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      margin: 0; padding-top: 48px; text-align: center;
+      background: #ffe6f0; font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       overflow: hidden;
     }
-    h1 { margin: 0 0 4px; font-size: 32px; font-weight: 800; }
+    h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
     h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
-
     .photo-card {
-      display: inline-block;
-      background: #fff;
-      padding: 12px;
-      border-radius: 16px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-      margin: 12px auto 4px;
-      max-width: min(92vw, 520px);
+      display: inline-block; background: #fff; padding: 12px; border-radius: 16px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12); margin: 12px auto 4px; max-width: min(92vw, 520px);
     }
     .photo-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: 70vh;
-      object-fit: cover;
-      border-radius: 12px;
-      background: #f3f3f3;
+      display: block; width: 100%; height: auto; max-height: 70vh;
+      object-fit: cover; border-radius: 12px; background: #f3f3f3;
     }
-    .photo-caption {
-      margin-top: 8px;
-      font-size: 14px;
-      color: #7a3a50;
-    }
+    .photo-caption { margin-top: 8px; font-size: 14px; color: #7a3a50; }
 
     #yesBtn, #noBtn {
-      padding: 12px 24px;
-      font-size: 22px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
+      padding: 12px 24px; font-size: 22px; border-radius: 10px; border: none; cursor: pointer;
       margin: 14px 8px 0;
     }
     #yesBtn { background: #e91e63; color: #fff; box-shadow: 0 4px 12px rgba(233,30,99,0.35); }
@@ -55,12 +32,13 @@
     #response { margin-top: 16px; font-size: 20px; }
 
     /* Floating hearts */
-    #hearts { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
-    .heart { position: absolute; color: #ff5c8a; font-size: 24px; animation: floatUp 4s linear infinite; text-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-    @keyframes floatUp { 0% { transform: translateY(100vh); opacity: 1; } 100% { transform: translateY(-10vh) scale(1.4); opacity: 0; } }
+    #hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+    .heart { position: absolute; color: #ff5c8a; font-size: 24px; animation: floatUp 4s linear infinite;
+             text-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+    @keyframes floatUp { 0% { transform: translateY(100vh); opacity: 1; }
+                         100% { transform: translateY(-10vh) scale(1.4); opacity: 0; } }
 
-    /* Tiny red warning bar if the image fails to load */
-    .img-error { margin-top: 6px; color: #b00020; font-size: 13px; }
+    .img-error { margin-top: 6px; color: #b00020; font-size: 13px; display:none; }
   </style>
 </head>
 <body>
@@ -70,50 +48,4 @@
   <h2>Will you be my Valentine?</h2>
 
   <figure class="photo-card">
-    <!-- IMPORTANT: image.png must sit next to index.html -->
-    image.png
-    <figcaption class="photo-caption">The executive cuddle committee votes yes 🐾</figcaption>
-    <div id="imgError" class="img-error" style="display:none;">Couldn’t load <code>image.png</code>. Make sure it’s next to <code>index.html</code> and the name matches exactly (case-sensitive).</div>
-  </figure>
-
-  <div>
-    <button id="yesBtn">Yes 💘</button>
-    <button id="noBtn">No 😢</button>
-  </div>
-
-  <div id="response"></div>
-
-  <script>
-    // Hearts
-    const hearts = document.getElementById("hearts");
-    setInterval(() => {
-      const h = document.createElement("div");
-      h.className = "heart";
-      h.textContent = "❤️";
-      h.style.left = Math.random() * 100 + "vw";
-      h.style.animationDuration = (3 + Math.random() * 2) + "s";
-      hearts.appendChild(h);
-      setTimeout(() => h.remove(), 5000);
-    }, 500);
-
-    // Yes button response
-    document.getElementById("yesBtn").onclick = () => {
-      document.getElementById("response").textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
-    };
-
-    // No button dodges
-    const noBtn = document.getElementById("noBtn");
-    function moveNo() {
-      noBtn.style.left = Math.random() * 80 + 10 + "vw";
-      noBtn.style.top  = Math.random() * 65 + 20 + "vh";
-    }
-    noBtn.addEventListener("mouseover", moveNo);
-    noBtn.addEventListener("click", moveNo);
-
-    // If image fails, show text warning
-    const img = document.querySelector("img");
-    img.addEventListener("error", () => document.getElementById("imgError").style.display = "block");
-  </script>
-</body>
-</html>
-``
+    <!-- Embedded cats photo (no external file needed) -->
