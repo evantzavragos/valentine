@@ -18,6 +18,8 @@
     }
 
     h1, h2 { margin: 10px; padding: 0 10px; }
+    h1 { font-weight: 800; }
+    h2 { font-weight: 700; }
 
     /* Photo card */
     .photo-card {
@@ -30,6 +32,23 @@
       margin: 12px auto 4px;
       max-width: min(92vw, 520px);
       z-index: 3; /* above hearts */
+    }
+    .photo-card img {
+      display: block;
+      width: 100%;
+      height: auto;              /* maintain aspect ratio */
+      max-height: 70vh;          /* avoid exceeding viewport height */
+      object-fit: cover;         /* crop gracefully if needed */
+      border-radius: 12px;
+      background: #f3f3f3;       /* subtle loading bg */
+    }
+    .fallback {
+      padding: 10px 12px;
+      color: #b00020;
+      font-size: 14px;
+      background: #fff2f4;
+      border-radius: 10px;
+      border: 1px solid #ffd6de;
     }
     .photo-caption {
       font-size: 14px;
@@ -59,6 +78,7 @@
       color: white;
       transition: transform 0.15s ease;
       margin-top: 14px;
+      box-shadow: 0 4px 12px rgba(233,30,99,0.35);
     }
 
     /* Start centered; we will remove transform on first move */
@@ -86,6 +106,7 @@
       font-size: 24px;
       animation: floatUp 4s linear infinite;
       will-change: transform, opacity;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
     @keyframes floatUp {
       0%   { transform: translateY(100vh) scale(1); opacity: 1; }
@@ -108,10 +129,15 @@
   <!-- Photo of their cats -->
   <figure class="photo-card" aria-label="A cute photo message from the cats">
     <img
-      src="image.png"
+      id="catsPhoto"
+      src="image.png"                <!-- CHANGE THIS if your file/path differs -->
       alt="Two cats cuddled in a bed by a bright window"
-      style="display:block;width:100%;height:auto;max-height:70vh;object-fit:cover;border-radius:12px;background:#f3f3f3;"
-      onerror="this.closest('figure').insertAdjacentHTML('afterbegin','<div style=&quot;padding:10px;color:#b00020;&quot;>Couldn’t load the photo. Check the filename/path.</div>'); this.remove();"
+      onerror="(function(img){
+        var note = document.createElement('div');
+        note.className='fallback';
+        note.textContent='Couldn’t load the photo. Check the filename/path.';
+        img.replaceWith(note);
+      })(this)"
     />
     <figcaption class="photo-caption">The executive cuddle committee votes “Yes.” 🐾</figcaption>
   </figure>
@@ -157,3 +183,49 @@
     let initialized = false;
 
     function moveButton(e) {
+      if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+      // Remove initial centering transform so left/top are literal pixels
+      if (!initialized) {
+        noBtn.style.transform = "none";
+        initialized = true;
+      }
+
+      // Compute safe bounds based on actual button size
+      const rect = noBtn.getBoundingClientRect();
+      const maxX = Math.max(0, window.innerWidth  - rect.width  - 4);  // padding
+      const maxY = Math.max(0, window.innerHeight - rect.height - 4);
+
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+
+      growYes();
+    }
+
+    // Attach events (Pointer Events first; fall back to touch/mouse)
+    if (window.PointerEvent) {
+      noBtn.addEventListener("pointerenter", moveButton, { passive: false });
+      noBtn.addEventListener("pointerdown",  moveButton, { passive: false });
+      noBtn.addEventListener("pointermove",  moveButton, { passive: false });
+    } else {
+      noBtn.addEventListener("touchstart", moveButton, { passive: false });
+      noBtn.addEventListener("touchmove",  moveButton, { passive: false });
+      noBtn.addEventListener("mouseover",  moveButton);
+      noBtn.addEventListener("mousemove",  moveButton);
+    }
+
+    // As a final fallback, also move on click/tap
+    noBtn.addEventListener("click", moveButton);
+
+    // Yes action (personalized)
+    function sayYes() {
+      document.getElementById("response").textContent =
+        "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+    }
+    yesBtn.addEventListener("click", sayYes);
+  </script>
+</body>
+</html>
