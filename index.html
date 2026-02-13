@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,8 +35,11 @@
     .photo-card img {
       display: block;
       width: 100%;
-      height: auto;
+      height: auto;              /* keep natural aspect ratio */
+      max-height: 70vh;          /* don’t exceed viewport */
+      object-fit: cover;         /* crop gracefully if needed */
       border-radius: 12px;
+      background: #f3f3f3;       /* subtle loading bg */
     }
     .photo-caption {
       font-size: 14px;
@@ -113,7 +117,12 @@
 
   <!-- Photo of their cats -->
   <figure class="photo-card" aria-label="A cute photo message from the cats">
-    <img src="0.jpg" alt="Two cats cuddled in a bed by a bright window" loading="eager">
+    <img
+      id="catsPhoto"
+      src="image.png"             <!-- if your file is named differently, change this -->
+      alt="Two cats cuddled in a bed by a bright window"
+      onerror="this.outerHTML='<div style=&quot;padding:10px;color:#b00020;&quot;>Couldn&rsquo;t load the photo. Check the filename/path.</div>'"
+    />
     <figcaption class="photo-caption">The executive cuddle committee votes “Yes.” 🐾</figcaption>
   </figure>
 
