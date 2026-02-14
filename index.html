@@ -18,7 +18,7 @@
       background: var(--bg);
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       color: #111;
-      /* Let the page scroll as YES grows huge (important for iPhone) */
+      /* Allow scrolling if Yes gets huge */
       overflow: auto;
       display: flex;
       justify-content: center;
@@ -45,7 +45,7 @@
       font-weight: 700;
     }
 
-    /* Button area with dynamic spacers (keeps YES away from header/response) */
+    /* Button area with spacers to keep clear of header/response */
     #buttonArea {
       position: relative;
       display: flex;
@@ -55,11 +55,11 @@
     }
     #topSpacer, #bottomSpacer {
       width: 100%;
-      height: 0;         /* JS sets this based on YES height */
+      height: 0;         /* JS will set based on YES height */
       pointer-events: none;
     }
 
-    /* YES’s wrapper reserves its height so layout reflows */
+    /* YES wrapper reserves space equal to YES height so layout reflows */
     #yesWrapper {
       height: auto;      /* JS sets exact px */
       display: flex;
@@ -78,31 +78,27 @@
       transition: background .15s ease, box-shadow .15s ease;
       user-select: none;
     }
-    /* YES grows via font-size + padding (layout-aware, not transform) */
+    /* YES grows via font-size + padding (layout-aware; NOT transform) */
     #yesBtn {
       background: var(--yes);
       color: #fff;
-      font-size: 22px;      /* grows forever */
-      padding: 12px 24px;   /* grows forever */
+      font-size: 22px;      /* will grow only on NO click */
+      padding: 12px 24px;   /* will grow only on NO click */
       box-shadow: 0 4px 12px var(--shadow);
     }
     #yesBtn:active { transform: translateY(1px); }
 
-    /* NO roams freely; fixed so it won't push other content around */
+    /* NO stays in normal flow under YES (easier to tap on mobile) */
     #noBtn {
-      position: fixed;
-      /* Use dynamic viewport units on iOS 16+ (svh); fall back to vh */
-      top: 65svh;
-      left: 50vw;
-      transform: translate(-50%,-50%);
       background: #ccc;
       color: #333;
       font-size: 20px;
       padding: 10px 20px;
+      margin-top: 18px;
     }
 
     #response {
-      margin: 0;
+      margin: 12px 0 0;
       font-size: 20px;
       min-height: 28px;     /* avoid a small jump on first message */
     }
@@ -144,17 +140,23 @@
     </header>
 
     <section id="buttonArea" aria-label="Answer buttons">
+      <!-- Keeps YES clear of the header -->
       <div id="topSpacer"></div>
+
+      <!-- YES wrapper (we lock its height to YES height + buffer) -->
       <div id="yesWrapper">
         <button id="yesBtn" type="button">Yes 💘</button>
       </div>
+
+      <!-- “No” lives in normal flow and only triggers growth on CLICK -->
+      <button id="noBtn" type="button" aria-label="No">No 😢</button>
+
+      <!-- Keeps response clear of the growing YES -->
       <div id="bottomSpacer"></div>
     </section>
 
     <p id="response" role="status" aria-live="polite"></p>
   </main>
-
-  <button id="noBtn" type="button" aria-label="No">No 😢</button>
 
   <script>
     /* Floating hearts */
@@ -177,16 +179,17 @@
     const noBtn        = document.getElementById("noBtn");
     const response     = document.getElementById("response");
 
-    /* YES growth state — infinite */
+    /* YES growth state — grows ONLY on NO clicks */
     let yesFont = 22;   // px
     let yesPadV = 12;   // px
     let yesPadH = 24;   // px
 
+    /* Keep spacers in sync with the current YES height so nothing overlaps */
     function syncLayoutBuffers() {
       requestAnimationFrame(() => {
         const h = yesBtn.offsetHeight;
         const topBuffer    = Math.ceil(h * 0.35);  // space above YES
-        const wrapperH     = h + 24;               // YES height + room
+        const wrapperH     = h + 24;               // YES + breathing room
         const bottomBuffer = Math.ceil(h * 0.45);  // space below YES
         yesWrapper.style.height   = wrapperH + "px";
         topSpacer.style.height    = topBuffer + "px";
@@ -201,49 +204,34 @@
       syncLayoutBuffers();
     }
 
-    function growYes() {
-      /* Infinite growth — tweak these for faster/slower growth */
-      yesFont += 2;
-      yesPadV += 1;
-      yesPadH += 2;
+    function growYesOnce() {
+      // Adjust these three numbers to change how much larger per click
+      yesFont += 3;  // font size step (px)
+      yesPadV += 2;  // vertical padding step (px)
+      yesPadH += 4;  // horizontal padding step (px)
       applyYesSize();
     }
 
-    /* Start an auto-grow timer so it never stops (even if user can't chase No) */
-    let growthInterval = setInterval(growYes, 700); // grows every 700ms forever
+    // Grow ONLY when "No" is CLICKED (desktop + mobile)
+    noBtn.addEventListener("click", growYesOnce);
+    noBtn.addEventListener("pointerdown", (e) => {
+      // On touch devices, pointerdown happens before click; prevent double-fire
+      if (e.pointerType === "touch") {
+        growYesOnce();
+      }
+    }, { passive: true });
 
-    /* Also grow extra whenever the user goes after the No button */
-    function dodgeNo() {
-      const x = Math.random() * 80 + 10; // 10..90 vw
-      const y = Math.random() * 70 + 15; // 15..85 vh
-      noBtn.style.left = x + "vw";
-      noBtn.style.top  = y + "vh";
-      /* bonus growth on each attempt */
-      growYes();
-    }
-
-    /* iPhone-friendly events (no hover dependency) */
-    noBtn.addEventListener("pointerdown", dodgeNo);
-    noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
-    noBtn.addEventListener("click", dodgeNo);
-    noBtn.addEventListener("touchstart", dodgeNo, { passive: true });
-    noBtn.addEventListener("touchmove", dodgeNo, { passive: true });
-    noBtn.addEventListener("mouseover", dodgeNo);
-
-    /* YES click message; if you want growth to stop after YES, uncomment below */
+    // YES shows the message (doesn't change size)
     yesBtn.addEventListener("click", () => {
       response.textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
-      // If you'd like to stop auto-growing after YES is clicked, uncomment:
-      // clearInterval(growthInterval);
-      // growthInterval = null;
       syncLayoutBuffers();
     });
 
-    /* Initial sync + keep spacing correct on orientation/resize (iPhone safe) */
+    // Initial sync + on resize
     applyYesSize();
     window.addEventListener("resize", syncLayoutBuffers);
 
-    /* Remove any stray <img> nodes from older cached versions (safety) */
+    // Safety: remove any stray <img> nodes from old cached versions
     Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
