@@ -18,20 +18,20 @@
       background: var(--bg);
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       color: #111;
-      overflow: hidden;          /* keep floating hearts tidy */
+      /* allow scrolling as YES grows huge */
+      overflow: auto;
       display: flex;
       justify-content: center;
     }
 
-    /* Page column */
     .page {
       width: min(720px, 100vw);
       padding: 24px 16px 32px;
       text-align: center;
       position: relative;
+      margin: 0 auto;
     }
 
-    /* Header */
     header h1 {
       margin: 6px 0 4px;
       font-size: 32px;
@@ -43,33 +43,30 @@
       font-weight: 700;
     }
 
-    /* Button area (spacers + yes wrapper live here) */
+    /* Button area with dynamic spacers */
     #buttonArea {
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 8px;    /* small base; JS adds real spacing via #topSpacer */
+      margin-top: 8px;
     }
 
-    /* Spacers are transparent blocks whose heights are set in JS */
     #topSpacer,
     #bottomSpacer {
       width: 100%;
-      height: 0px;        /* JS updates */
+      height: 0;            /* JS adjusts */
       pointer-events: none;
     }
 
-    /* Yes container reserves the button's height so layout reflows */
     #yesWrapper {
-      height: auto;       /* JS sets exact px */
+      height: auto;         /* JS sets exact px to reserve space */
       display: flex;
       align-items: center;
       justify-content: center;
       transition: height .18s ease;
     }
 
-    /* Buttons */
     #yesBtn, #noBtn {
       border: none;
       border-radius: 16px;
@@ -79,17 +76,17 @@
       transition: background .15s ease, box-shadow .15s ease;
     }
 
-    /* YES grows by font-size + padding (layout-aware) */
+    /* YES grows via font-size + padding (layout-aware) */
     #yesBtn {
       background: var(--yes);
       color: #fff;
-      font-size: 22px;     /* grows in JS */
-      padding: 12px 24px;  /* grows in JS */
+      font-size: 22px;      /* will grow forever */
+      padding: 12px 24px;   /* will grow forever */
       box-shadow: 0 4px 12px var(--shadow);
     }
     #yesBtn:active { transform: translateY(1px); }
 
-    /* NO roams freely; position fixed so it never bumps layout */
+    /* NO roams freely; fixed so it never affects layout below/above */
     #noBtn {
       position: fixed;
       top: 65vh;
@@ -101,14 +98,13 @@
       padding: 10px 20px;
     }
 
-    /* Response line */
     #response {
-      margin: 0;          /* JS uses bottom spacer to create room above */
+      margin: 0;
       font-size: 20px;
-      min-height: 28px;   /* prevent initial jump */
+      min-height: 28px;   /* avoid initial jump */
     }
 
-    /* Floating hearts layer */
+    /* Floating hearts */
     #hearts {
       position: fixed;
       inset: 0;
@@ -145,15 +141,15 @@
     </header>
 
     <section id="buttonArea" aria-label="Answer buttons">
-      <!-- Spacer above YES (keeps YES clear of header) -->
+      <!-- Keep space between header and the growing YES button -->
       <div id="topSpacer"></div>
 
-      <!-- YES lives inside a wrapper whose height we lock to YES height + buffer -->
+      <!-- YES button wrapper; we lock its height to YES height + buffer -->
       <div id="yesWrapper">
         <button id="yesBtn" type="button">Yes 💘</button>
       </div>
 
-      <!-- Spacer below YES (keeps response clear) -->
+      <!-- Keep space between YES and response -->
       <div id="bottomSpacer"></div>
     </section>
 
@@ -163,7 +159,7 @@
   <button id="noBtn" type="button" aria-label="No">No 😢</button>
 
   <script>
-    // Floating hearts
+    // Hearts
     const hearts = document.getElementById("hearts");
     setInterval(() => {
       const h = document.createElement("div");
@@ -176,29 +172,28 @@
     }, 500);
 
     // Elements
-    const yesBtn      = document.getElementById("yesBtn");
-    const yesWrapper  = document.getElementById("yesWrapper");
-    const topSpacer   = document.getElementById("topSpacer");
-    const bottomSpacer= document.getElementById("bottomSpacer");
-    const noBtn       = document.getElementById("noBtn");
-    const response    = document.getElementById("response");
+    const yesBtn       = document.getElementById("yesBtn");
+    const yesWrapper   = document.getElementById("yesWrapper");
+    const topSpacer    = document.getElementById("topSpacer");
+    const bottomSpacer = document.getElementById("bottomSpacer");
+    const noBtn        = document.getElementById("noBtn");
+    const response     = document.getElementById("response");
 
-    // Growth state
+    // YES growth state — no caps
     let yesFont = 22;   // px
     let yesPadV = 12;   // px
     let yesPadH = 24;   // px
 
-    // Recalculate all spacing around YES so nothing overlaps
+    // Adjust layout buffers around the YES button so nothing overlaps
     function syncLayoutBuffers() {
-      // Let the browser apply new font/padding before reading height
       requestAnimationFrame(() => {
-        const h = yesBtn.offsetHeight;              // actual current button height
-        const topBuffer    = Math.ceil(h * 0.35);   // space above YES
-        const wrapperH     = h + 24;                // YES + small breathing room
-        const bottomBuffer = Math.ceil(h * 0.45);   // space below YES (more generous)
+        const h = yesBtn.offsetHeight;
+        const topBuffer    = Math.ceil(h * 0.35);  // space above YES
+        const wrapperH     = h + 24;               // YES height + breathing room
+        const bottomBuffer = Math.ceil(h * 0.45);  // space below YES
 
-        yesWrapper.style.height = wrapperH + "px";
-        topSpacer.style.height  = topBuffer + "px";
+        yesWrapper.style.height   = wrapperH + "px";
+        topSpacer.style.height    = topBuffer + "px";
         bottomSpacer.style.height = bottomBuffer + "px";
       });
     }
@@ -211,15 +206,10 @@
     }
 
     function growYes() {
+      // Increase as much as you like – no caps
       yesFont += 2;
       yesPadV += 1;
       yesPadH += 2;
-
-      // Sensible caps so it doesn't get absurdly huge
-      if (yesFont > 52) yesFont = 52;
-      if (yesPadV > 26) yesPadV = 26;
-      if (yesPadH > 52) yesPadH = 52;
-
       applyYesSize();
     }
 
@@ -243,11 +233,11 @@
       syncLayoutBuffers();
     });
 
-    // Initial sync + on resize (keyboard zoom / rotate / resize)
+    // Initial sync + on resize
     applyYesSize();
     window.addEventListener("resize", syncLayoutBuffers);
 
-    // Safety: if any <img> nodes exist from older cached versions, remove them
+    // Remove any stray <img> nodes that might exist from older cached versions
     Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
