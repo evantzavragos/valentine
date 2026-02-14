@@ -5,6 +5,10 @@
   <title>Be My Valentine?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --yes-scale: 1;
+    }
+
     body {
       margin: 0;
       padding-top: 48px;
@@ -24,14 +28,14 @@
       border: none;
       cursor: pointer;
       margin: 14px 8px 0;
-      transition: 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     #yesBtn {
       background: #e91e63;
       color: #fff;
       box-shadow: 0 4px 12px rgba(233,30,99,0.35);
-      transform: scale(1);
+      transform: scale(var(--yes-scale));
     }
 
     #noBtn  {
@@ -43,10 +47,7 @@
       transform: translate(-50%,-50%);
     }
 
-    #response {
-      margin-top: 20px;
-      font-size: 22px;
-    }
+    #response { margin-top: 20px; font-size: 22px; }
 
     /* Floating hearts */
     #hearts {
@@ -71,16 +72,15 @@
 </head>
 
 <body>
-
   <div id="hearts"></div>
 
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <button id="yesBtn">Yes 💘</button>
-  <button id="noBtn">No 😢</button>
+  <button id="yesBtn" type="button">Yes 💘</button>
+  <button id="noBtn"  type="button">No 😢</button>
 
-  <div id="response"></div>
+  <div id="response" role="status" aria-live="polite"></div>
 
   <script>
     // Floating hearts
@@ -95,35 +95,45 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // YES button grows each time NO is attempted
+    // YES grows every time NO is attempted (hover or click)
     const yesBtn = document.getElementById("yesBtn");
     let yesScale = 1;
 
     function growYes() {
-      yesScale += 0.15; // increase size
-      yesBtn.style.transform = `scale(${yesScale})`;
+      yesScale += 0.15; // adjust growth step here
+      // Cap the growth so it doesn't get ridiculous
+      if (yesScale > 2.6) yesScale = 2.6;
+      document.documentElement.style.setProperty("--yes-scale", yesScale.toString());
+      yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
     }
 
-    // NO button dodges & triggers Yes growth
+    // NO dodges & triggers YES growth
     const noBtn = document.getElementById("noBtn");
 
     function dodgeNo() {
-      const x = Math.random() * 80 + 10;
-      const y = Math.random() * 70 + 10;
+      // Random position within safe viewport bounds
+      const x = Math.random() * 80 + 10;  // 10vw to 90vw
+      const y = Math.random() * 70 + 10;  // 10vh to 80vh
       noBtn.style.left = x + "vw";
-      noBtn.style.top = y + "vh";
+      noBtn.style.top  = y + "vh";
       growYes();
     }
 
-    noBtn.addEventListener("mouseover", dodgeNo);
+    // Grow on both hover and click attempts
+    noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
     noBtn.addEventListener("click", dodgeNo);
+    // Fallbacks for older browsers
+    noBtn.addEventListener("mouseover", dodgeNo);
 
-    // YES response
-    yesBtn.onclick = () => {
+    // YES message
+    yesBtn.addEventListener("click", () => {
       document.getElementById("response").textContent =
         "Yay! Can’t wait, Scarlett (Stinky) ❤️";
-    };
-  </script>
+    });
 
+    // --- Extra safety: remove any stray old image nodes if your browser cached an old version ---
+    // If there is any <img> element leftover from previous HTML, remove it.
+    Array.from(document.querySelectorAll("img")).forEach(img => img.remove());
+  </script>
 </body>
 </html>
