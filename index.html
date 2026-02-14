@@ -13,28 +13,9 @@
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
       overflow: hidden;
     }
-    h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
-    h2 { margin: 0 0 14px; font-size: 20px; font-weight: 700; }
 
-    .photo-card {
-      display: inline-block;
-      background: #fff;
-      padding: 12px;
-      border-radius: 16px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-      margin: 12px auto 4px;
-      max-width: min(92vw, 520px);
-    }
-    .photo-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      max-height: 70vh;
-      object-fit: cover;
-      border-radius: 12px;
-      background: #f3f3f3;
-    }
-    .photo-caption { margin-top: 8px; font-size: 14px; color: #7a3a50; }
+    h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
+    h2 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
 
     #yesBtn, #noBtn {
       padding: 12px 24px;
@@ -43,13 +24,16 @@
       border: none;
       cursor: pointer;
       margin: 14px 8px 0;
+      transition: 0.2s ease;
     }
+
     #yesBtn {
       background: #e91e63;
       color: #fff;
       box-shadow: 0 4px 12px rgba(233,30,99,0.35);
-      transition: transform .15s ease;
+      transform: scale(1);
     }
+
     #noBtn  {
       background: #ccc;
       color: #333;
@@ -59,7 +43,10 @@
       transform: translate(-50%,-50%);
     }
 
-    #response { margin-top: 16px; font-size: 20px; }
+    #response {
+      margin-top: 20px;
+      font-size: 22px;
+    }
 
     /* Floating hearts */
     #hearts {
@@ -80,41 +67,20 @@
       0% { transform: translateY(100vh); opacity: 1; }
       100% { transform: translateY(-10vh) scale(1.4); opacity: 0; }
     }
-
-    .img-error {
-      margin-top: 6px;
-      color: #b00020;
-      font-size: 13px;
-      display: none;
-    }
   </style>
 </head>
+
 <body>
+
   <div id="hearts"></div>
 
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <figure class="photo-card" aria-label="A cute photo message from the cats">
-    <!-- ✅ This is the actual image element (previously missing) -->
-    <img
-      id="cats"
-      src="https://raw.githubusercontent.com/evantzavragos/valentine/main/image.png"
-      alt="Their cats cuddling"
-    />
-    <figcaption class="photo-caption">The executive cuddle committee votes yes 🐾</figcaption>
-    <div id="imgError" class="img-error">
-      Couldn’t load the photo. Make sure the file exists at the URL above (case‑sensitive),
-      or rename the repo file to <code>image.png</code>.
-    </div>
-  </figure>
+  <button id="yesBtn">Yes 💘</button>
+  <button id="noBtn">No 😢</button>
 
-  <div>
-    <button id="yesBtn" type="button">Yes 💘</button>
-    <button id="noBtn"  type="button">No 😢</button>
-  </div>
-
-  <div id="response" role="status" aria-live="polite"></div>
+  <div id="response"></div>
 
   <script>
     // Floating hearts
@@ -129,26 +95,35 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // Yes button response
-    document.getElementById("yesBtn").onclick = () => {
+    // YES button grows each time NO is attempted
+    const yesBtn = document.getElementById("yesBtn");
+    let yesScale = 1;
+
+    function growYes() {
+      yesScale += 0.15; // increase size
+      yesBtn.style.transform = `scale(${yesScale})`;
+    }
+
+    // NO button dodges & triggers Yes growth
+    const noBtn = document.getElementById("noBtn");
+
+    function dodgeNo() {
+      const x = Math.random() * 80 + 10;
+      const y = Math.random() * 70 + 10;
+      noBtn.style.left = x + "vw";
+      noBtn.style.top = y + "vh";
+      growYes();
+    }
+
+    noBtn.addEventListener("mouseover", dodgeNo);
+    noBtn.addEventListener("click", dodgeNo);
+
+    // YES response
+    yesBtn.onclick = () => {
       document.getElementById("response").textContent =
         "Yay! Can’t wait, Scarlett (Stinky) ❤️";
     };
-
-    // No button dodges
-    const noBtn = document.getElementById("noBtn");
-    function moveNo() {
-      noBtn.style.left = Math.random() * 80 + 10 + "vw";
-      noBtn.style.top  = Math.random() * 65 + 20 + "vh";
-    }
-    noBtn.addEventListener("mouseover", moveNo);
-    noBtn.addEventListener("click", moveNo);
-
-    // Show helper if the image can't load
-    const cats = document.getElementById("cats");
-    cats.addEventListener("error", () => {
-      document.getElementById("imgError").style.display = "block";
-    });
   </script>
+
 </body>
 </html>
