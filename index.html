@@ -17,46 +17,48 @@
     h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
     h2 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
 
-    /* Put buttons in a column so page reflows nicely */
-    .btn-stack {
+    /* Stack = controlled zone for the buttons */
+    .stack {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;             /* space between Yes and No */
-      margin-bottom: 24px;   /* extra room above the response line */
+      gap: 18px;            /* space between Yes and No */
+      margin-bottom: 12px;  /* small base gap; JS will add more room below */
     }
 
     #yesBtn, #noBtn {
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.12s ease;
+      transition: box-shadow 0.2s ease, background 0.2s ease;
       line-height: 1.1;
+      white-space: nowrap;
     }
 
-    /* Start size for YES; we will grow font-size and padding via JS */
+    /* YES starts modest; we increase its font-size and padding via JS (layout-aware) */
     #yesBtn {
       background: #e91e63;
       color: #fff;
-      font-size: 22px;
-      padding: 12px 24px;
+      font-size: 22px;      /* will grow */
+      padding: 12px 24px;   /* will grow */
       box-shadow: 0 4px 12px rgba(233,30,99,0.35);
     }
     #yesBtn:active { transform: translateY(1px); }
 
-    /* NO starts centered-ish but will be moved by JS */
+    /* NO begins in normal flow; after the first dodge we set it absolute */
     #noBtn {
       background: #ccc;
       color: #333;
       font-size: 20px;
       padding: 10px 20px;
-      position: relative; /* stays in flow inside .btn-stack until we move it absolutely */
+      position: relative;
     }
 
+    /* The area that shows messages; we’ll add dynamic margin-top in JS */
     #response {
-      margin-top: 18px;
+      margin-top: 18px;      /* base spacing; JS will add more */
       font-size: 20px;
-      min-height: 28px; /* reserve space so first message doesn’t jump the layout */
+      min-height: 28px;      /* avoid layout jump on first message */
     }
 
     /* Floating hearts */
@@ -79,7 +81,6 @@
       100% { transform: translateY(-10vh) scale(1.4); opacity: 0; }
     }
 
-    /* On very small screens, keep a little breathing room */
     @media (max-width: 380px) {
       h1 { font-size: 28px; }
       h2 { font-size: 18px; }
@@ -93,7 +94,7 @@
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <div class="btn-stack">
+  <div class="stack" id="stack">
     <button id="yesBtn" type="button">Yes 💘</button>
     <button id="noBtn"  type="button">No 😢</button>
   </div>
@@ -113,56 +114,74 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // YES grows by increasing font-size and padding (layout-aware, no overlap)
+    // Elements
     const yesBtn = document.getElementById("yesBtn");
+    const noBtn  = document.getElementById("noBtn");
+    const stack  = document.getElementById("stack");
+    const resp   = document.getElementById("response");
+
+    // YES grows by increasing font-size & padding (layout-aware)
     let yesFont = 22;     // px
-    let yesPadV = 12;     // vertical padding px
-    let yesPadH = 24;     // horizontal padding px
+    let yesPadV = 12;     // px
+    let yesPadH = 24;     // px
+
+    function applyYesSize() {
+      yesBtn.style.fontSize = yesFont + "px";
+      yesBtn.style.padding  = `${yesPadV}px ${yesPadH}px`;
+
+      // After sizing, make sure content below has enough space.
+      // We set an extra margin-top for #response equal to ~40% of YES height + a buffer.
+      const h = yesBtn.offsetHeight;
+      resp.style.marginTop = Math.ceil(h * 0.4 + 20) + "px";
+    }
 
     function growYes() {
-      yesFont += 2;        // grow font
-      yesPadV += 1;        // grow vertical padding
-      yesPadH += 2;        // grow horizontal padding
+      yesFont += 2;
+      yesPadV += 1;
+      yesPadH += 2;
 
-      // gentle cap so it doesn't get too massive
-      if (yesFont > 40) yesFont = 40;
-      if (yesPadV > 20) yesPadV = 20;
-      if (yesPadH > 40) yesPadH = 40;
+      // Put sensible caps
+      if (yesFont > 44) yesFont = 44;
+      if (yesPadV > 22) yesPadV = 22;
+      if (yesPadH > 44) yesPadH = 44;
 
-      yesBtn.style.fontSize = yesFont + "px";
-      yesBtn.style.padding   = yesPadV + "px " + yesPadH + "px";
       yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
+      applyYesSize();
     }
 
     // NO dodges & triggers YES growth
-    const noBtn = document.getElementById("noBtn");
-
     function dodgeNo() {
-      // Once dodging starts, take it out of normal flow so it can roam
+      // Take NO out of the flow so it can move freely
       if (noBtn.style.position !== "absolute") {
+        const rect = noBtn.getBoundingClientRect();
+        // Convert current position to absolute, relative to viewport
         noBtn.style.position = "absolute";
+        noBtn.style.left = rect.left + "px";
+        noBtn.style.top  = rect.top  + "px";
       }
-      // Random position within safe viewport (keep inside 10-85% both directions)
-      const x = Math.random() * 75 + 10; // 10vw..85vw
-      const y = Math.random() * 65 + 10; // 10vh..75vh
+      // Random position within safe viewport bounds
+      const x = Math.random() * 80 + 10; // 10vw..90vw
+      const y = Math.random() * 70 + 15; // 15vh..85vh
       noBtn.style.left = x + "vw";
       noBtn.style.top  = y + "vh";
 
       growYes();
     }
 
-    // Trigger growth on hover or click attempts
     noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
     noBtn.addEventListener("mouseover", dodgeNo);
     noBtn.addEventListener("click", dodgeNo);
 
-    // YES message
-    document.getElementById("yesBtn").addEventListener("click", () => {
-      document.getElementById("response").textContent =
-        "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+    // YES click message
+    yesBtn.addEventListener("click", () => {
+      resp.textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+      applyYesSize(); // ensure spacing is still correct after content changes
     });
 
-    // Safety: remove any stray <img> nodes if an old cached version left them in the DOM
+    // Initial layout sync
+    applyYesSize();
+
+    // Safety: remove any stray <img> nodes from cached older versions
     Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
