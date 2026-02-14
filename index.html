@@ -5,13 +5,9 @@
   <title>Be My Valentine?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --yes-scale: 1;
-    }
-
     body {
       margin: 0;
-      padding-top: 48px;
+      padding: 48px 16px 24px;
       text-align: center;
       background: #ffe6f0;
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
@@ -21,33 +17,47 @@
     h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
     h2 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
 
-    #yesBtn, #noBtn {
-      padding: 12px 24px;
-      font-size: 22px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      margin: 14px 8px 0;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    /* Put buttons in a column so page reflows nicely */
+    .btn-stack {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;             /* space between Yes and No */
+      margin-bottom: 24px;   /* extra room above the response line */
     }
 
+    #yesBtn, #noBtn {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.12s ease;
+      line-height: 1.1;
+    }
+
+    /* Start size for YES; we will grow font-size and padding via JS */
     #yesBtn {
       background: #e91e63;
       color: #fff;
+      font-size: 22px;
+      padding: 12px 24px;
       box-shadow: 0 4px 12px rgba(233,30,99,0.35);
-      transform: scale(var(--yes-scale));
     }
+    #yesBtn:active { transform: translateY(1px); }
 
-    #noBtn  {
+    /* NO starts centered-ish but will be moved by JS */
+    #noBtn {
       background: #ccc;
       color: #333;
-      position: fixed;
-      top: 65vh;
-      left: 50vw;
-      transform: translate(-50%,-50%);
+      font-size: 20px;
+      padding: 10px 20px;
+      position: relative; /* stays in flow inside .btn-stack until we move it absolutely */
     }
 
-    #response { margin-top: 20px; font-size: 22px; }
+    #response {
+      margin-top: 18px;
+      font-size: 20px;
+      min-height: 28px; /* reserve space so first message doesn’t jump the layout */
+    }
 
     /* Floating hearts */
     #hearts {
@@ -68,6 +78,12 @@
       0% { transform: translateY(100vh); opacity: 1; }
       100% { transform: translateY(-10vh) scale(1.4); opacity: 0; }
     }
+
+    /* On very small screens, keep a little breathing room */
+    @media (max-width: 380px) {
+      h1 { font-size: 28px; }
+      h2 { font-size: 18px; }
+    }
   </style>
 </head>
 
@@ -77,8 +93,10 @@
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <button id="yesBtn" type="button">Yes 💘</button>
-  <button id="noBtn"  type="button">No 😢</button>
+  <div class="btn-stack">
+    <button id="yesBtn" type="button">Yes 💘</button>
+    <button id="noBtn"  type="button">No 😢</button>
+  </div>
 
   <div id="response" role="status" aria-live="polite"></div>
 
@@ -95,15 +113,24 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // YES grows every time NO is attempted (hover or click)
+    // YES grows by increasing font-size and padding (layout-aware, no overlap)
     const yesBtn = document.getElementById("yesBtn");
-    let yesScale = 1;
+    let yesFont = 22;     // px
+    let yesPadV = 12;     // vertical padding px
+    let yesPadH = 24;     // horizontal padding px
 
     function growYes() {
-      yesScale += 0.15; // adjust growth step here
-      // Cap the growth so it doesn't get ridiculous
-      if (yesScale > 2.6) yesScale = 2.6;
-      document.documentElement.style.setProperty("--yes-scale", yesScale.toString());
+      yesFont += 2;        // grow font
+      yesPadV += 1;        // grow vertical padding
+      yesPadH += 2;        // grow horizontal padding
+
+      // gentle cap so it doesn't get too massive
+      if (yesFont > 40) yesFont = 40;
+      if (yesPadV > 20) yesPadV = 20;
+      if (yesPadH > 40) yesPadH = 40;
+
+      yesBtn.style.fontSize = yesFont + "px";
+      yesBtn.style.padding   = yesPadV + "px " + yesPadH + "px";
       yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
     }
 
@@ -111,29 +138,32 @@
     const noBtn = document.getElementById("noBtn");
 
     function dodgeNo() {
-      // Random position within safe viewport bounds
-      const x = Math.random() * 80 + 10;  // 10vw to 90vw
-      const y = Math.random() * 70 + 10;  // 10vh to 80vh
+      // Once dodging starts, take it out of normal flow so it can roam
+      if (noBtn.style.position !== "absolute") {
+        noBtn.style.position = "absolute";
+      }
+      // Random position within safe viewport (keep inside 10-85% both directions)
+      const x = Math.random() * 75 + 10; // 10vw..85vw
+      const y = Math.random() * 65 + 10; // 10vh..75vh
       noBtn.style.left = x + "vw";
       noBtn.style.top  = y + "vh";
+
       growYes();
     }
 
-    // Grow on both hover and click attempts
+    // Trigger growth on hover or click attempts
     noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
-    noBtn.addEventListener("click", dodgeNo);
-    // Fallbacks for older browsers
     noBtn.addEventListener("mouseover", dodgeNo);
+    noBtn.addEventListener("click", dodgeNo);
 
     // YES message
-    yesBtn.addEventListener("click", () => {
+    document.getElementById("yesBtn").addEventListener("click", () => {
       document.getElementById("response").textContent =
         "Yay! Can’t wait, Scarlett (Stinky) ❤️";
     });
 
-    // --- Extra safety: remove any stray old image nodes if your browser cached an old version ---
-    // If there is any <img> element leftover from previous HTML, remove it.
-    Array.from(document.querySelectorAll("img")).forEach(img => img.remove());
+    // Safety: remove any stray <img> nodes if an old cached version left them in the DOM
+    Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
 </html>
