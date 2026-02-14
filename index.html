@@ -17,48 +17,61 @@
     h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
     h2 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
 
-    /* Stack = controlled zone for the buttons */
-    .stack {
+    /* Zone that holds the buttons */
+    #buttonArea {
+      position: relative;       /* so we could anchor things here if needed */
       display: inline-flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;            /* space between Yes and No */
-      margin-bottom: 12px;  /* small base gap; JS will add more room below */
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    /* Wrapper reserves vertical space equal to YES height + buffer (set via JS) */
+    #yesWrapper {
+      height: auto;             /* JS will set an exact px height */
+      transition: height .18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #yesBtn, #noBtn {
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      transition: box-shadow 0.2s ease, background 0.2s ease;
+      transition: box-shadow .2s ease, background .2s ease;
       line-height: 1.1;
       white-space: nowrap;
     }
 
-    /* YES starts modest; we increase its font-size and padding via JS (layout-aware) */
+    /* YES starts modest; we’ll grow font-size/padding via JS (layout-aware) */
     #yesBtn {
       background: #e91e63;
       color: #fff;
-      font-size: 22px;      /* will grow */
-      padding: 12px 24px;   /* will grow */
+      font-size: 22px;      /* grows */
+      padding: 12px 24px;   /* grows */
       box-shadow: 0 4px 12px rgba(233,30,99,0.35);
     }
     #yesBtn:active { transform: translateY(1px); }
 
-    /* NO begins in normal flow; after the first dodge we set it absolute */
+    /* NO will be moved around the viewport; start near middle */
     #noBtn {
       background: #ccc;
       color: #333;
       font-size: 20px;
       padding: 10px 20px;
-      position: relative;
+      position: fixed;        /* free to roam */
+      top: 65vh;
+      left: 50vw;
+      transform: translate(-50%,-50%);
     }
 
-    /* The area that shows messages; we’ll add dynamic margin-top in JS */
+    /* Response line sits below the button area */
     #response {
-      margin-top: 18px;      /* base spacing; JS will add more */
+      margin-top: 18px;       /* base spacing; wrapper ensures more if needed */
       font-size: 20px;
-      min-height: 28px;      /* avoid layout jump on first message */
+      min-height: 28px;       /* prevents layout jump on first message */
     }
 
     /* Floating hearts */
@@ -94,8 +107,13 @@
   <h1>Scarlett (Stinky)... 💕</h1>
   <h2>Will you be my Valentine?</h2>
 
-  <div class="stack" id="stack">
-    <button id="yesBtn" type="button">Yes 💘</button>
+  <div id="buttonArea">
+    <!-- YES is inside a wrapper whose height we sync to the button's height -->
+    <div id="yesWrapper">
+      <button id="yesBtn" type="button">Yes 💘</button>
+    </div>
+
+    <!-- NO is positioned fixed (free to dodge); it won't affect layout below -->
     <button id="noBtn"  type="button">No 😢</button>
   </div>
 
@@ -114,11 +132,10 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    // Elements
-    const yesBtn = document.getElementById("yesBtn");
-    const noBtn  = document.getElementById("noBtn");
-    const stack  = document.getElementById("stack");
-    const resp   = document.getElementById("response");
+    const yesBtn     = document.getElementById("yesBtn");
+    const yesWrapper = document.getElementById("yesWrapper");
+    const noBtn      = document.getElementById("noBtn");
+    const resp       = document.getElementById("response");
 
     // YES grows by increasing font-size & padding (layout-aware)
     let yesFont = 22;     // px
@@ -129,10 +146,12 @@
       yesBtn.style.fontSize = yesFont + "px";
       yesBtn.style.padding  = `${yesPadV}px ${yesPadH}px`;
 
-      // After sizing, make sure content below has enough space.
-      // We set an extra margin-top for #response equal to ~40% of YES height + a buffer.
-      const h = yesBtn.offsetHeight;
-      resp.style.marginTop = Math.ceil(h * 0.4 + 20) + "px";
+      // Sync the wrapper height to the current button height + buffer.
+      // This *forces* the layout to reserve space below the button.
+      requestAnimationFrame(() => {
+        const h = yesBtn.offsetHeight;
+        yesWrapper.style.height = (h + 24) + "px"; // 24px buffer for comfort
+      });
     }
 
     function growYes() {
@@ -140,10 +159,10 @@
       yesPadV += 1;
       yesPadH += 2;
 
-      // Put sensible caps
-      if (yesFont > 44) yesFont = 44;
-      if (yesPadV > 22) yesPadV = 22;
-      if (yesPadH > 44) yesPadH = 44;
+      // Sensible caps
+      if (yesFont > 48) yesFont = 48;
+      if (yesPadV > 24) yesPadV = 24;
+      if (yesPadH > 48) yesPadH = 48;
 
       yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
       applyYesSize();
@@ -151,37 +170,28 @@
 
     // NO dodges & triggers YES growth
     function dodgeNo() {
-      // Take NO out of the flow so it can move freely
-      if (noBtn.style.position !== "absolute") {
-        const rect = noBtn.getBoundingClientRect();
-        // Convert current position to absolute, relative to viewport
-        noBtn.style.position = "absolute";
-        noBtn.style.left = rect.left + "px";
-        noBtn.style.top  = rect.top  + "px";
-      }
-      // Random position within safe viewport bounds
-      const x = Math.random() * 80 + 10; // 10vw..90vw
-      const y = Math.random() * 70 + 15; // 15vh..85vh
+      const x = Math.random() * 80 + 10; // 10..90 vw
+      const y = Math.random() * 70 + 15; // 15..85 vh
       noBtn.style.left = x + "vw";
       noBtn.style.top  = y + "vh";
-
       growYes();
     }
 
+    // Grow on both hover and click attempts
     noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
     noBtn.addEventListener("mouseover", dodgeNo);
     noBtn.addEventListener("click", dodgeNo);
 
-    // YES click message
+    // YES message
     yesBtn.addEventListener("click", () => {
       resp.textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
-      applyYesSize(); // ensure spacing is still correct after content changes
     });
 
-    // Initial layout sync
+    // Initial layout sync + on resize
     applyYesSize();
+    window.addEventListener("resize", applyYesSize);
 
-    // Safety: remove any stray <img> nodes from cached older versions
+    // Safety: remove any stray <img> nodes from older cached versions
     Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
