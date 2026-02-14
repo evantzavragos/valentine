@@ -5,76 +5,110 @@
   <title>Be My Valentine?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    :root {
+      --bg: #ffe6f0;
+      --yes: #e91e63;
+      --shadow: rgba(233,30,99,0.35);
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      padding: 48px 16px 24px;
-      text-align: center;
-      background: #ffe6f0;
+      background: var(--bg);
       font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    h1 { margin: 0 0 6px; font-size: 32px; font-weight: 800; }
-    h2 { margin: 0 0 20px; font-size: 20px; font-weight: 700; }
-
-    /* Zone that holds the buttons */
-    #buttonArea {
-      position: relative;       /* so we could anchor things here if needed */
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-      margin-bottom: 12px;
-    }
-
-    /* Wrapper reserves vertical space equal to YES height + buffer (set via JS) */
-    #yesWrapper {
-      height: auto;             /* JS will set an exact px height */
-      transition: height .18s ease;
+      color: #111;
+      overflow: hidden;          /* keep floating hearts tidy */
       display: flex;
-      align-items: center;
       justify-content: center;
     }
 
-    #yesBtn, #noBtn {
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: box-shadow .2s ease, background .2s ease;
-      line-height: 1.1;
-      white-space: nowrap;
+    /* Page column */
+    .page {
+      width: min(720px, 100vw);
+      padding: 24px 16px 32px;
+      text-align: center;
+      position: relative;
     }
 
-    /* YES starts modest; we’ll grow font-size/padding via JS (layout-aware) */
+    /* Header */
+    header h1 {
+      margin: 6px 0 4px;
+      font-size: 32px;
+      font-weight: 800;
+    }
+    header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Button area (spacers + yes wrapper live here) */
+    #buttonArea {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 8px;    /* small base; JS adds real spacing via #topSpacer */
+    }
+
+    /* Spacers are transparent blocks whose heights are set in JS */
+    #topSpacer,
+    #bottomSpacer {
+      width: 100%;
+      height: 0px;        /* JS updates */
+      pointer-events: none;
+    }
+
+    /* Yes container reserves the button's height so layout reflows */
+    #yesWrapper {
+      height: auto;       /* JS sets exact px */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: height .18s ease;
+    }
+
+    /* Buttons */
+    #yesBtn, #noBtn {
+      border: none;
+      border-radius: 16px;
+      line-height: 1.1;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s ease, box-shadow .15s ease;
+    }
+
+    /* YES grows by font-size + padding (layout-aware) */
     #yesBtn {
-      background: #e91e63;
+      background: var(--yes);
       color: #fff;
-      font-size: 22px;      /* grows */
-      padding: 12px 24px;   /* grows */
-      box-shadow: 0 4px 12px rgba(233,30,99,0.35);
+      font-size: 22px;     /* grows in JS */
+      padding: 12px 24px;  /* grows in JS */
+      box-shadow: 0 4px 12px var(--shadow);
     }
     #yesBtn:active { transform: translateY(1px); }
 
-    /* NO will be moved around the viewport; start near middle */
+    /* NO roams freely; position fixed so it never bumps layout */
     #noBtn {
+      position: fixed;
+      top: 65vh;
+      left: 50vw;
+      transform: translate(-50%,-50%);
       background: #ccc;
       color: #333;
       font-size: 20px;
       padding: 10px 20px;
-      position: fixed;        /* free to roam */
-      top: 65vh;
-      left: 50vw;
-      transform: translate(-50%,-50%);
     }
 
-    /* Response line sits below the button area */
+    /* Response line */
     #response {
-      margin-top: 18px;       /* base spacing; wrapper ensures more if needed */
+      margin: 0;          /* JS uses bottom spacer to create room above */
       font-size: 20px;
-      min-height: 28px;       /* prevents layout jump on first message */
+      min-height: 28px;   /* prevent initial jump */
     }
 
-    /* Floating hearts */
+    /* Floating hearts layer */
     #hearts {
       position: fixed;
       inset: 0;
@@ -95,29 +129,38 @@
     }
 
     @media (max-width: 380px) {
-      h1 { font-size: 28px; }
-      h2 { font-size: 18px; }
+      header h1 { font-size: 28px; }
+      header h2 { font-size: 18px; }
     }
   </style>
 </head>
-
 <body>
+  <!-- Background hearts -->
   <div id="hearts"></div>
 
-  <h1>Scarlett (Stinky)... 💕</h1>
-  <h2>Will you be my Valentine?</h2>
+  <main class="page">
+    <header>
+      <h1>Scarlett (Stinky)... 💕</h1>
+      <h2>Will you be my Valentine?</h2>
+    </header>
 
-  <div id="buttonArea">
-    <!-- YES is inside a wrapper whose height we sync to the button's height -->
-    <div id="yesWrapper">
-      <button id="yesBtn" type="button">Yes 💘</button>
-    </div>
+    <section id="buttonArea" aria-label="Answer buttons">
+      <!-- Spacer above YES (keeps YES clear of header) -->
+      <div id="topSpacer"></div>
 
-    <!-- NO is positioned fixed (free to dodge); it won't affect layout below -->
-    <button id="noBtn"  type="button">No 😢</button>
-  </div>
+      <!-- YES lives inside a wrapper whose height we lock to YES height + buffer -->
+      <div id="yesWrapper">
+        <button id="yesBtn" type="button">Yes 💘</button>
+      </div>
 
-  <div id="response" role="status" aria-live="polite"></div>
+      <!-- Spacer below YES (keeps response clear) -->
+      <div id="bottomSpacer"></div>
+    </section>
+
+    <p id="response" role="status" aria-live="polite"></p>
+  </main>
+
+  <button id="noBtn" type="button" aria-label="No">No 😢</button>
 
   <script>
     // Floating hearts
@@ -132,26 +175,39 @@
       setTimeout(() => h.remove(), 5000);
     }, 500);
 
-    const yesBtn     = document.getElementById("yesBtn");
-    const yesWrapper = document.getElementById("yesWrapper");
-    const noBtn      = document.getElementById("noBtn");
-    const resp       = document.getElementById("response");
+    // Elements
+    const yesBtn      = document.getElementById("yesBtn");
+    const yesWrapper  = document.getElementById("yesWrapper");
+    const topSpacer   = document.getElementById("topSpacer");
+    const bottomSpacer= document.getElementById("bottomSpacer");
+    const noBtn       = document.getElementById("noBtn");
+    const response    = document.getElementById("response");
 
-    // YES grows by increasing font-size & padding (layout-aware)
-    let yesFont = 22;     // px
-    let yesPadV = 12;     // px
-    let yesPadH = 24;     // px
+    // Growth state
+    let yesFont = 22;   // px
+    let yesPadV = 12;   // px
+    let yesPadH = 24;   // px
+
+    // Recalculate all spacing around YES so nothing overlaps
+    function syncLayoutBuffers() {
+      // Let the browser apply new font/padding before reading height
+      requestAnimationFrame(() => {
+        const h = yesBtn.offsetHeight;              // actual current button height
+        const topBuffer    = Math.ceil(h * 0.35);   // space above YES
+        const wrapperH     = h + 24;                // YES + small breathing room
+        const bottomBuffer = Math.ceil(h * 0.45);   // space below YES (more generous)
+
+        yesWrapper.style.height = wrapperH + "px";
+        topSpacer.style.height  = topBuffer + "px";
+        bottomSpacer.style.height = bottomBuffer + "px";
+      });
+    }
 
     function applyYesSize() {
       yesBtn.style.fontSize = yesFont + "px";
       yesBtn.style.padding  = `${yesPadV}px ${yesPadH}px`;
-
-      // Sync the wrapper height to the current button height + buffer.
-      // This *forces* the layout to reserve space below the button.
-      requestAnimationFrame(() => {
-        const h = yesBtn.offsetHeight;
-        yesWrapper.style.height = (h + 24) + "px"; // 24px buffer for comfort
-      });
+      yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
+      syncLayoutBuffers();
     }
 
     function growYes() {
@@ -159,12 +215,11 @@
       yesPadV += 1;
       yesPadH += 2;
 
-      // Sensible caps
-      if (yesFont > 48) yesFont = 48;
-      if (yesPadV > 24) yesPadV = 24;
-      if (yesPadH > 48) yesPadH = 48;
+      // Sensible caps so it doesn't get absurdly huge
+      if (yesFont > 52) yesFont = 52;
+      if (yesPadV > 26) yesPadV = 26;
+      if (yesPadH > 52) yesPadH = 52;
 
-      yesBtn.style.boxShadow = "0 6px 18px rgba(233,30,99,0.45)";
       applyYesSize();
     }
 
@@ -177,21 +232,22 @@
       growYes();
     }
 
-    // Grow on both hover and click attempts
+    // Grow on hover and click attempts
     noBtn.addEventListener("pointerenter", dodgeNo, { passive: true });
     noBtn.addEventListener("mouseover", dodgeNo);
     noBtn.addEventListener("click", dodgeNo);
 
-    // YES message
+    // YES click message
     yesBtn.addEventListener("click", () => {
-      resp.textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+      response.textContent = "Yay! Can’t wait, Scarlett (Stinky) ❤️";
+      syncLayoutBuffers();
     });
 
-    // Initial layout sync + on resize
+    // Initial sync + on resize (keyboard zoom / rotate / resize)
     applyYesSize();
-    window.addEventListener("resize", applyYesSize);
+    window.addEventListener("resize", syncLayoutBuffers);
 
-    // Safety: remove any stray <img> nodes from older cached versions
+    // Safety: if any <img> nodes exist from older cached versions, remove them
     Array.from(document.querySelectorAll("img")).forEach(n => n.remove());
   </script>
 </body>
